@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Minesweeper • iPhone Shell</title>
+
+  <!-- iPhone full-screen & status bar -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0f1115" />
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <!-- Optional icon (iOS will snapshot if missing); we'll add real icons later -->
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png" />
+
+  <style>
+    :root{
+      --bg:#0f1115; --panel:#171a21; --panel-2:#1e222b; --text:#e8ecf1; --muted:#9aa4b2;
+      --panel-edge:#1f2430; --edge:#222836; --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
+      --font: ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", Segoe UI, Roboto, Arial, "Noto Sans", sans-serif;
+    }
+    [data-theme="light"]{
+      --bg:#f5f7fb; --panel:#ffffff; --panel-2:#f1f5fb; --text:#0f1115; --muted:#596273;
+      --panel-edge:#cbd3e2; --edge:#d5dbe7;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:var(--bg); color:var(--text); font-family:var(--font);
+      padding:12px; padding-top:calc(12px + var(--safe-top)); padding-bottom:calc(12px + var(--safe-bottom));
+      display:grid; place-items:start center;
+    }
+    .wrap{width:min(100%, 820px); display:grid; gap:12px}
+    header{
+      background:linear-gradient(180deg,var(--panel),var(--panel-2));
+      border:1px solid var(--panel-edge); border-radius:16px; padding:12px; display:grid; gap:10px;
+    }
+    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .title{font-weight:800; font-size:18px}
+    .chip{
+      display:flex; align-items:center; gap:6px; padding:8px 12px; border-radius:12px;
+      border:1px solid var(--edge); background:#141a24; font-variant-numeric:tabular-nums;
+    }
+    [data-theme="light"] .chip{background:#eef3fb}
+    .lbl{color:var(--muted); font-size:12px}
+    .val{font-size:16px}
+    button{
+      font:inherit; color:var(--text); background:#141a24; border:1px solid var(--edge);
+      border-radius:12px; padding:10px 14px; min-height:44px;
+    }
+    [data-theme="light"] button{background:#eef3fb}
+    .primary{background:linear-gradient(180deg,#21445e,#1a3549); border-color:#2b546e; color:#eaf6ff}
+    [data-theme="light"] .primary{background:linear-gradient(180deg,#1d78d0,#0f63b8)}
+    .board{
+      background:linear-gradient(180deg,var(--panel),var(--panel-2));
+      border:1px solid var(--panel-edge); border-radius:16px; padding:12px; min-height:240px;
+      display:grid; place-items:center; color:var(--muted);
+    }
+    .ok{color:#58d68d}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="row">
+        <div class="title">🙂 Minesweeper (iPhone Shell)</div>
+        <div style="flex:1"></div>
+        <div class="chip"><span class="lbl">⏱</span><span class="val">—</span></div>
+        <div class="chip"><span class="lbl">🚩</span><span class="val">—</span></div>
+        <div class="chip"><span class="lbl">💡</span><span class="val">—</span></div>
+      </div>
+      <div class="row">
+        <button id="theme">🌗 Theme</button>
+        <button id="test" class="primary">Self-test</button>
+      </div>
+    </header>
+
+    <div class="board" id="status">
+      If you can see this on your iPhone and on Home Screen, Step 1 is done.
+    </div>
+
+    <div style="text-align:center; color:var(--muted)">Full-screen + offline ready. Next step adds the game grid.</div>
+  </div>
+
+  <script>
+    // Theme toggle (quick sanity check for touch events)
+    const status = document.getElementById('status');
+    document.getElementById('theme').addEventListener('click', () => {
+      const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+      const next = cur === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+    });
+
+    // Self-test: confirm service worker & safe-area CSS applied
+    document.getElementById('test').addEventListener('click', () => {
+      const ok = ('serviceWorker' in navigator);
+      status.innerHTML = ok
+        ? '✅ <span class="ok">Service worker capable</span>. Add to Home Screen to test offline next.'
+        : '⚠️ Service worker not supported here.';
+    });
+
+    // Register service worker (works on http(s) or localhost)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(console.error);
+      });
+    }
+  </script>
+</body>
+</html>

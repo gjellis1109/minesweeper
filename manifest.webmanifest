@@ -1,6 +1,7 @@
 {
   "name": "Minesweeper (iPhone)",
   "short_name": "Minesweeper",
+  "description": "Phone-first Minesweeper with hints, Safe Click, seeds, sounds, haptics.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

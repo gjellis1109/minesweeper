@@ -1,6 +1,12 @@
-// Minimal cache-first SW for offline
-const CACHE = "msw-shell-v1";
-const ASSETS = ["./", "./index.html", "./manifest.webmanifest"];
+// Cache-first service worker for GitHub Pages
+const CACHE = "msw-cache-v1";
+const ASSETS = [
+  "./",
+  "./index.html",
+  "./manifest.webmanifest",
+  "./icons/icon-192.png",
+  "./icons/apple-touch-icon-180.png"
+];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));
@@ -15,7 +21,14 @@ self.addEventListener("activate", (e) => {
 });
 
 self.addEventListener("fetch", (e) => {
+  const req = e.request;
   e.respondWith(
-    caches.match(e.request).then((hit) => hit || fetch(e.request))
+    caches.match(req).then(hit => hit || fetch(req).then(res => {
+      if (req.method === "GET" && res.ok) {
+        const copy = res.clone();
+        caches.open(CACHE).then(c => c.put(req, copy));
+      }
+      return res;
+    }))
   );
 });

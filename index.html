@@ -1,106 +1,110 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Minesweeper • iPhone</title>
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<style>
-  :root{
-    --bg:#0f1115; --panel:#171a21; --panel-2:#1e222b; --text:#e8ecf1; --muted:#9aa4b2;
-    --accent:#5cc8ff; --good:#2dd27a; --danger:#ff5c7a; --edge:#222836; --panel-edge:#1f2430;
-    --gap:6px; --cell-size:42px; --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
-    --font: ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", Segoe UI, Roboto, Arial, "Noto Sans", sans-serif;
-  }
-  [data-theme="light"]{
-    --bg:#f5f7fb; --panel:#ffffff; --panel-2:#f1f5fb; --text:#0f1115; --muted:#596273;
-    --accent:#0b82ff; --good:#0fb565; --danger:#e23d56; --edge:#d5dbe7; --panel-edge:#cbd3e2;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0; font-family:var(--font); background:var(--bg); color:var(--text);
-    padding:12px; padding-top:calc(12px + var(--safe-top)); padding-bottom:calc(12px + var(--safe-bottom));
-    display:grid; place-items:start center;
-  }
-  .wrap{width:min(100%, 820px); display:grid; gap:12px}
-  header{
-    background:linear-gradient(180deg,var(--panel),var(--panel-2));
-    border:1px solid var(--panel-edge); border-radius:16px; padding:12px;
-    display:grid; gap:10px;
-  }
-  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-  .title{font-weight:800; font-size:18px}
-  .pad{flex:1}
-  .chip{
-    display:flex; align-items:center; gap:6px; padding:8px 12px; border-radius:12px;
-    border:1px solid var(--edge); background:#141a24; font-variant-numeric:tabular-nums;
-  }
-  [data-theme="light"] .chip{background:#eef3fb}
-  .chip .lbl{color:var(--muted); font-size:12px}
-  .chip .val{font-size:16px}
-  button, select, input{
-    font:inherit; color:var(--text); background:#141a24; border:1px solid var(--edge); border-radius:12px;
-    padding:10px 14px; min-height:44px;
-  }
-  [data-theme="light"] button,[data-theme="light"] select,[data-theme="light"] input{background:#eef3fb}
-  button.primary{background:linear-gradient(180deg,#21445e,#1a3549); border-color:#2b546e; color:#eaf6ff}
-  [data-theme="light"] button.primary{background:linear-gradient(180deg,#1d78d0,#0f63b8)}
-  button.danger{background:linear-gradient(180deg,#632235,#4a1a29); border-color:#7a2c44; color:#ffeef2}
-  .tiny{padding:8px 10px; min-height:40px}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <title>Minesweeper • iPhone</title>
 
-  .board{
-    background:linear-gradient(180deg,var(--panel),var(--panel-2));
-    border:1px solid var(--panel-edge); border-radius:16px; padding:12px; position:relative;
-  }
-  #grid{
-    display:grid; grid-template-columns:repeat(var(--W), var(--cell-size));
-    grid-auto-rows:var(--cell-size); gap:var(--gap); user-select:none; -webkit-user-select:none;
-    touch-action:manipulation;
-  }
-  .cell{
-    width:var(--cell-size); height:var(--cell-size); border-radius:10px;
-    display:grid; place-items:center; cursor:pointer; font-weight:900; position:relative; overflow:hidden;
-    background:linear-gradient(180deg,#1b2233,#141a27); border:1px solid #0c1020; box-shadow:inset 0 0 0 1px rgba(255,255,255,.03);
-  }
-  [data-theme="light"] .cell{background:linear-gradient(180deg,#f0f4fa,#e7edf7); border-color:#d5dbe7}
-  .cell.revealed{background:linear-gradient(180deg,#232b3d,#1a2130); border-color:#2a3143; cursor:default}
-  [data-theme="light"] .cell.revealed{background:linear-gradient(180deg,#e7edf7,#dee6f3); border-color:#cbd3e2}
-  .cell.mine.revealed{background:linear-gradient(180deg,#3b1e27,#2a1620)}
-  [data-theme="light"] .cell.mine.revealed{background:linear-gradient(180deg,#ffdbe3,#ffd1dc)}
-  .g{font-size:18px}
-  .n1{color:#6ec1ff}.n2{color:#2fd98c}.n3{color:#ffb24d}.n4{color:#ff8a7a}
-  .n5{color:#ff4f6d}.n6{color:#b678ff}.n7{color:#95a2ff}.n8{color:#9aa4b2}
+  <!-- iPhone full-screen & status bar -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#0f1115" />
 
-  /* Hint visuals */
-  .hinting{outline:2px dashed var(--accent); outline-offset:4px}
-  .cell.hsafe{ box-shadow:0 0 0 2px var(--good) inset, 0 0 10px rgba(45,210,122,.4) inset}
-  .cell.hmine{ box-shadow:0 0 0 2px var(--danger) inset, 0 0 10px rgba(255,92,122,.4) inset}
-  .tag{
-    position:absolute; right:6px; bottom:6px; font-size:10px; padding:2px 6px; border-radius:999px;
-    background:#0f1420cc; color:#fff; border:1px solid var(--edge);
-    transform:translateY(4px); opacity:0; transition:all .2s;
-  }
-  .cell.hsafe .tag, .cell.hmine .tag{transform:translateY(0); opacity:1}
+  <!-- PWA manifest + iOS icon -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png" />
 
-  .paused::after{
-    content:"PAUSED"; position:absolute; inset:0; display:grid; place-items:center;
-    background:rgba(0,0,0,.35); color:#fff; font-size:28px; font-weight:900; letter-spacing:.5px;
-    backdrop-filter:blur(2px); border-radius:14px;
-  }
+  <style>
+    :root{
+      --bg:#0f1115; --panel:#171a21; --panel-2:#1e222b; --text:#e8ecf1; --muted:#9aa4b2;
+      --accent:#5cc8ff; --good:#2dd27a; --danger:#ff5c7a; --edge:#222836; --panel-edge:#1f2430;
+      --gap:6px; --cell-size:42px; --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
+      --font: ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", Segoe UI, Roboto, Arial, "Noto Sans", sans-serif;
+    }
+    [data-theme="light"]{
+      --bg:#f5f7fb; --panel:#ffffff; --panel-2:#f1f5fb; --text:#0f1115; --muted:#596273;
+      --accent:#0b82ff; --good:#0fb565; --danger:#e23d56; --edge:#d5dbe7; --panel-edge:#cbd3e2;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:var(--font); background:var(--bg); color:var(--text);
+      padding:12px; padding-top:calc(12px + var(--safe-top)); padding-bottom:calc(12px + var(--safe-bottom));
+      display:grid; place-items:start center;
+    }
+    .wrap{width:min(100%, 820px); display:grid; gap:12px}
 
-  .backdrop{position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center}
-  .hidden{display:none}
-  .modal{
-    width:min(92vw, 700px); background:var(--panel); color:var(--text);
-    border:1px solid var(--panel-edge); border-radius:16px; padding:16px;
-  }
-  .modal h3{margin:0 0 8px 0}
-  .kbd{padding:1px 6px; border:1px solid var(--edge); border-radius:6px; font-weight:700}
-  .muted{color:var(--muted)}
-  .grow{flex:1}
-</style>
+    header{
+      background:linear-gradient(180deg,var(--panel),var(--panel-2));
+      border:1px solid var(--panel-edge); border-radius:16px; padding:12px;
+      display:grid; gap:10px;
+    }
+    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .title{font-weight:800; font-size:18px}
+    .chip{display:flex; align-items:center; gap:6px; padding:8px 12px; border-radius:12px;
+      border:1px solid var(--edge); background:#141a24; font-variant-numeric:tabular-nums;}
+    [data-theme="light"] .chip{background:#eef3fb}
+    .chip .lbl{color:var(--muted); font-size:12px}
+    .chip .val{font-size:16px}
+
+    button, select, input{
+      font:inherit; color:var(--text); background:#141a24; border:1px solid var(--edge);
+      border-radius:12px; padding:10px 14px; min-height:44px;
+    }
+    [data-theme="light"] button,[data-theme="light"] select,[data-theme="light"] input{background:#eef3fb}
+    button.primary{background:linear-gradient(180deg,#21445e,#1a3549); border-color:#2b546e; color:#eaf6ff}
+    [data-theme="light"] button.primary{background:linear-gradient(180deg,#1d78d0,#0f63b8)}
+    button.danger{background:linear-gradient(180deg,#632235,#4a1a29); border-color:#7a2c44; color:#ffeef2}
+    .tiny{padding:8px 10px; min-height:40px}
+
+    .board{
+      background:linear-gradient(180deg,var(--panel),var(--panel-2));
+      border:1px solid var(--panel-edge); border-radius:16px; padding:12px; position:relative;
+    }
+    #grid{
+      display:grid; grid-template-columns:repeat(var(--W), var(--cell-size));
+      grid-auto-rows:var(--cell-size); gap:var(--gap); user-select:none; -webkit-user-select:none; touch-action:manipulation;
+    }
+    .cell{
+      width:var(--cell-size); height:var(--cell-size); border-radius:10px;
+      display:grid; place-items:center; cursor:pointer; font-weight:900; position:relative; overflow:hidden;
+      background:linear-gradient(180deg,#1b2233,#141a27); border:1px solid #0c1020; box-shadow:inset 0 0 0 1px rgba(255,255,255,.03);
+    }
+    [data-theme="light"] .cell{background:linear-gradient(180deg,#f0f4fa,#e7edf7); border-color:#d5dbe7}
+    .cell.revealed{background:linear-gradient(180deg,#232b3d,#1a2130); border-color:#2a3143; cursor:default}
+    [data-theme="light"] .cell.revealed{background:linear-gradient(180deg,#e7edf7,#dee6f3); border-color:#cbd3e2}
+    .cell.mine.revealed{background:linear-gradient(180deg,#3b1e27,#2a1620)}
+    [data-theme="light"] .cell.mine.revealed{background:linear-gradient(180deg,#ffdbe3,#ffd1dc)}
+    .g{font-size:18px}
+    .n1{color:#6ec1ff}.n2{color:#2fd98c}.n3{color:#ffb24d}.n4{color:#ff8a7a}
+    .n5{color:#ff4f6d}.n6{color:#b678ff}.n7{color:#95a2ff}.n8{color:#9aa4b2}
+
+    /* Hints */
+    .hinting{outline:2px dashed var(--accent); outline-offset:4px}
+    .cell.hsafe{ box-shadow:0 0 0 2px var(--good) inset, 0 0 10px rgba(45,210,122,.4) inset}
+    .cell.hmine{ box-shadow:0 0 0 2px var(--danger) inset, 0 0 10px rgba(255,92,122,.4) inset}
+    .tag{ position:absolute; right:6px; bottom:6px; font-size:10px; padding:2px 6px; border-radius:999px;
+      background:#0f1420cc; color:#fff; border:1px solid var(--edge); transform:translateY(4px); opacity:0; transition:all .2s; }
+    .cell.hsafe .tag, .cell.hmine .tag{transform:translateY(0); opacity:1}
+
+    .paused::after{
+      content:"PAUSED"; position:absolute; inset:0; display:grid; place-items:center;
+      background:rgba(0,0,0,.35); color:#fff; font-size:28px; font-weight:900; letter-spacing:.5px;
+      backdrop-filter:blur(2px); border-radius:14px;
+    }
+
+    .backdrop{position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center}
+    .hidden{display:none}
+    .modal{
+      width:min(92vw, 700px); background:var(--panel); color:var(--text);
+      border:1px solid var(--panel-edge); border-radius:16px; padding:16px;
+    }
+    .modal h3{margin:0 0 8px 0}
+    .kbd{padding:1px 6px; border:1px solid var(--edge); border-radius:6px; font-weight:700}
+    .muted{color:var(--muted)}
+    .grow{flex:1}
+    .pad{flex:1}
+  </style>
 </head>
 <body>
   <div class="wrap">
@@ -126,7 +130,7 @@
         <button id="helpBtn" class="tiny">❔ Help</button>
       </div>
 
-      <div class="row controls">
+      <div class="row">
         <label>Preset
           <select id="preset">
             <option value="beginner">Beginner 9×9, 10</option>
@@ -139,9 +143,16 @@
         <label>H <input id="h" type="number" min="5" max="40" value="9"></label>
         <label>M <input id="m" type="number" min="1" max="500" value="10"></label>
         <button id="apply" class="tiny">Apply</button>
+
+        <div class="pad"></div>
+        <label>Seed <input id="seed" placeholder="auto" style="width:130px"></label>
+        <button id="newSeed" class="tiny">🎲 New Seed</button>
+        <button id="share" class="tiny">🔗 Share</button>
       </div>
 
-      <div class="muted" id="status">Tap to reveal • Long-press to flag • Use “💡 Hint” (3/game) to peek a cell • “🛡️ Safe Click” spends 1 hint to reveal a guaranteed safe cell.</div>
+      <div class="muted" id="status">
+        Tap to reveal • Long-press to flag • “💡 Hint” (3/game) peeks a cell • “🛡️ Safe Click” spends 1 hint to reveal a guaranteed safe cell.
+      </div>
     </header>
 
     <div class="board" id="board">
@@ -155,11 +166,12 @@
   <div id="help" class="backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
     <div class="modal">
       <h3 id="helpTitle">❔ Help</h3>
-      <p>• Tap to reveal. <b>Long-press</b> a hidden cell to place/remove a 🚩 flag. (You can also use the “🚩 Flag” toggle.)</p>
+      <p>• Tap to reveal. <b>Long-press</b> a hidden cell to place/remove a 🚩 flag (or use the “🚩 Flag” toggle).</p>
       <p>• Tap a number to chord (auto-reveal neighbors) when flags match its number.</p>
-      <p>• <b>💡 Hint</b>: tap any hidden cell to see SAFE/MINE (no penalty). <b>🛡️ Safe Click</b> uses 1 hint to reveal a guaranteed safe cell.</p>
-      <p>• <b>⏸️ Pause</b> freezes the timer and disables the board.</p>
-      <p class="muted" style="margin:.5em 0 0">Tip: Add to Home Screen from Safari’s Share menu for full-screen play.</p>
+      <p>• <b>💡 Hint</b>: tap any hidden cell to peek SAFE/MINE (no penalty). <b>🛡️ Safe Click</b> uses 1 hint to reveal a guaranteed safe cell.</p>
+      <p>• <b>⏸️ Pause</b> freezes the timer and disables the board. <b>🌗 Theme</b> toggles dark/light.</p>
+      <p>• Seeds: enter a seed or press 🎲. Use 🔗 Share to copy a URL that reproduces the same board.</p>
+      <p class="muted" style="margin:.5em 0 0">Tip: In Safari, Share → Add to Home Screen for full-screen play (offline after first load).</p>
       <p style="margin:10px 0 0; text-align:right">
         <button id="closeHelp" type="button" class="primary">Close</button>
       </p>
@@ -195,18 +207,29 @@
   const mInp = document.getElementById('m');
   const applyBtn = document.getElementById('apply');
 
+  const seedInp = document.getElementById('seed');
+  const newSeedBtn = document.getElementById('newSeed');
+  const shareBtn = document.getElementById('share');
+
   // ---------- State ----------
   let W=9,H=9,M=10;
   let cells=[], minesSet=false, started=false, alive=true;
   let timer=null, seconds=0, flagsLeft=M, revealed=0;
   let flagMode=false, paused=false, hintMode=false, hintsLeft=3;
-  let longPressTimer=null;
+  let longPressTimer=null, suppressTapUntil=0;
   let soundOn = (localStorage.getItem('msw-snd') ?? '1') === '1';
   document.documentElement.setAttribute('data-theme', localStorage.getItem('msw-theme') || 'dark');
 
   // Stats
   let games = +(localStorage.getItem('msw-games')||0);
   let wins  = +(localStorage.getItem('msw-wins')||0);
+
+  // RNG / seed
+  function autoSeed(){ return Math.random().toString(36).slice(2,10); }
+  function hashSeed(str){ let h=5381; for(let i=0;i<str.length;i++){ h=((h<<5)+h) + str.charCodeAt(i); h|=0; } return h>>>0; }
+  function mulberry32(a){ return function(){ let t=a+=0x6D2B79F5; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return ((t^t>>>14)>>>0)/4294967296; } }
+  let rng = mulberry32(hashSeed(autoSeed()));
+  function reseed(s){ rng = mulberry32(hashSeed(s)); }
 
   // ---------- Helpers ----------
   const $r = document.documentElement.style;
@@ -240,6 +263,7 @@
     $r.setProperty('--W', W);
   }
   window.addEventListener('resize', fitCellsToWidth);
+  window.visualViewport?.addEventListener('resize', fitCellsToWidth);
 
   // ---------- Game ----------
   function newGame(){
@@ -256,11 +280,11 @@
       for(let x=0;x<W;x++){
         const d=document.createElement('div');
         d.className='cell'; d.dataset.x=x; d.dataset.y=y; d.setAttribute('role','gridcell');
-        // Tap
-        d.addEventListener('click', onTap, {passive:true});
-        // Long-press to flag (iOS friendly)
-        d.addEventListener('touchstart', (ev)=>{ if(paused||!alive) return; const el=ev.currentTarget; longPressTimer=setTimeout(()=>{ longPressTimer=null; onLongPress(el); }, 450); }, {passive:true});
-        d.addEventListener('touchend', ()=>{ if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer=null; } }, {passive:true});
+        d.addEventListener('click', onTap, false);
+        // Long-press to flag
+        d.addEventListener('touchstart', (ev)=>{ if(paused||!alive) return; longPressTimer=setTimeout(()=>{ longPressTimer=null; onLongPress(d); suppressTapUntil = Date.now()+350; }, 450); }, false);
+        d.addEventListener('touchend', ()=>{ if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer=null; } }, false);
+        d.addEventListener('touchmove', ()=>{ if(longPressTimer){ clearTimeout(longPressTimer); longPressTimer=null; } }, false);
         grid.appendChild(d);
         cells.push({x,y, el:d, mine:false, adj:0, revealed:false, flagged:false, exploded:false});
       }
@@ -271,7 +295,7 @@
     const forbid = new Set([idx(sx,sy), ...nbrs(sx,sy).map(([nx,ny])=>idx(nx,ny))]);
     let placed=0;
     while(placed<M){
-      const r = Math.floor(Math.random()*cells.length);
+      const r = Math.floor(rng()*cells.length);
       if(cells[r].mine || forbid.has(r)) continue;
       cells[r].mine=true; placed++;
     }
@@ -287,6 +311,7 @@
 
   function onTap(e){
     if(!alive || paused) return;
+    if(Date.now() < suppressTapUntil) return; // swallow tap after long-press
     const t = e.target.closest('.cell'); if(!t) return;
     const x=+t.dataset.x, y=+t.dataset.y; const c=cells[idx(x,y)];
 
@@ -400,7 +425,7 @@
   function saveStats(){ localStorage.setItem('msw-games', games); localStorage.setItem('msw-wins', wins); }
 
   // ---------- Controls ----------
-  newBtn.addEventListener('click', ()=>{ newGame(); });
+  newBtn.addEventListener('click', ()=>{ newGame(); syncURL(); });
   pauseBtn.addEventListener('click', ()=>{
     if(!started || !alive) return;
     paused=!paused;
@@ -413,7 +438,7 @@
     statusEl.textContent = flagMode ? 'Flag Mode ON — tap cells to place/remove flags. (Or long-press a cell.)' : 'Flag Mode OFF — tap to reveal.';
   });
   hintBtn.addEventListener('click', ()=>{
-    if(hintsLeft<=0) return;
+    if(hintsLeft<=0 || !alive) return;
     hintMode=!hintMode;
     hintBtn.classList.toggle('primary', hintMode);
     grid.classList.toggle('hinting', hintMode);
@@ -460,24 +485,54 @@
   help.addEventListener('touchend', (e)=>{ if(e.target===help){ e.preventDefault?.(); hideHelp(); } }, {passive:true});
 
   // Presets / custom
-  preset.addEventListener('change', (e)=>{ setPreset(e.target.value); newGame(); });
+  preset.addEventListener('change', (e)=>{ setPreset(e.target.value); newGame(); syncURL(); });
   applyBtn.addEventListener('click', ()=>{
     const w = clamp(+wInp.value,5,60), h=clamp(+hInp.value,5,40);
     const maxM = Math.max(1, w*h - 1);
     const m = clamp(+mInp.value,1,Math.min(500,maxM));
-    W=w; H=h; M=m; preset.value='custom'; newGame();
+    W=w; H=h; M=m; preset.value='custom'; newGame(); syncURL();
   });
 
-  // Timer
+  // Seed & URL sync
+  function syncURL(){
+    const p=new URLSearchParams();
+    p.set('w',W); p.set('h',H); p.set('m',M);
+    if(preset.value!=='custom') p.set('preset', preset.value);
+    const s=seedInp.value.trim(); if(s) p.set('seed', s);
+    const url = `${location.origin}${location.pathname}?${p.toString()}`;
+    history.replaceState(null,'',url);
+  }
+  function loadFromURL(){
+    const p=new URLSearchParams(location.search);
+    const pr=p.get('preset'); if(['beginner','intermediate','expert','custom'].includes(pr)){ preset.value=pr; }
+    const pw=+p.get('w')||9, ph=+p.get('h')||9, pm=+p.get('m')||10;
+    if(preset.value!=='custom'){ setPreset(preset.value); } else { W=pw;H=ph;M=pm; wInp.value=W; hInp.value=H; mInp.value=M; }
+    const s=p.get('seed'); if(s){ seedInp.value=s; reseed(s); } else { seedInp.value=''; reseed(autoSeed()); }
+    newGame();
+  }
+  newSeedBtn.addEventListener('click', ()=>{ seedInp.value=autoSeed(); reseed(seedInp.value); newGame(); syncURL(); });
+  shareBtn.addEventListener('click', ()=>{
+    syncURL();
+    navigator.clipboard?.writeText(location.href).then(()=>{ statusEl.textContent='Link copied to clipboard!'; });
+  });
+
+  // Timer tick util (not used directly here but handy if needed)
   function tick(){ seconds++; tEl.textContent=String(seconds).padStart(3,'0'); }
 
   // ---------- Init ----------
   games = +(localStorage.getItem('msw-games')||0);
   wins  = +(localStorage.getItem('msw-wins')||0);
   soundBtn.textContent = `🔊 Sound: ${soundOn?'ON':'OFF'}`;
-  setPreset('beginner'); // you can change default here
-  updateHUD();
-  newGame();
+
+  // Load from URL if present; else default beginner with new seed
+  loadFromURL();
+
+  // Register service worker for GitHub Pages (works on https)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(console.error);
+    });
+  }
 })();
 </script>
 </body>
